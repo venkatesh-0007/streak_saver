@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.env.local
+server/data/config.json
+server/data/history.json
+.vercel
+.DS_Store
