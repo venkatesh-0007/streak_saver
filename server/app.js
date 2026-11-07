@@ -174,6 +174,9 @@ app.post('/api/logout', (req, res) => {
   saveConfig({ username: '', sessionCookie: '', csrfToken: '' });
   res.json({ ok: true });
 });
+
+// API: Get app status & config preview
+app.get('/api/status', (req, res) => {
   const config = getConfig();
   // Also check request headers for client-passed credentials
   const headerSession = req.headers['x-leetcode-session'];
