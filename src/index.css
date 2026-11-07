@@ -1,17 +1,32 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --primary-color: #4affbd;
+    --primary-glow: rgba(74, 255, 189, 0.2);
+    --yellow: #ffe855;
+    --orange: #ff6d1b;
+    --pink: #ff64f9;
+    --blue: #4d8aff;
+    --green: #5bff89;
+    --radius-out: 28px;
+    --radius-in: 18px;
+  }
+
   * {
     border-color: rgba(255, 255, 255, 0.08);
   }
+
   body {
-    background-color: #030712;
-    color: #f3f4f6;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-color: #000000;
+    color: #ffffff;
+    font-family: "Google Sans Flex", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.015em;
   }
 }
 
-/* Custom sleek scrollbars */
+/* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -20,64 +35,71 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.28);
 }
 
-/* Subtle glassmorphism */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Sameerasw-inspired Expressive Material You Frosted Glass */
+.expressive-card {
+  background: rgba(20, 23, 30, 0.65);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-out);
+  transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.glass-panel-subtle {
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.expressive-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.expressive-subcard {
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-in);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Professional Ambient Glows */
-.ambient-glow-amber {
-  box-shadow: 0 0 50px -12px rgba(245, 158, 11, 0.2);
+.expressive-subcard:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.ambient-glow-emerald {
-  box-shadow: 0 0 50px -12px rgba(16, 185, 129, 0.2);
+/* Floating Navigation Island */
+.floating-pill-nav {
+  background: rgba(18, 21, 28, 0.85);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(74, 255, 189, 0.1);
+  transition: all 0.45s cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Smooth shimmering sheen on hero card */
-@keyframes subtle-sheen {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(200%);
-  }
+/* Signature Mint Glow */
+.mint-glow {
+  box-shadow: 0 0 35px -8px rgba(74, 255, 189, 0.35);
 }
 
-.animate-sheen {
-  animation: subtle-sheen 6s infinite ease-in-out;
+.yellow-glow {
+  box-shadow: 0 0 35px -8px rgba(255, 232, 85, 0.35);
 }
 
-/* Soft pulsating status dot */
-@keyframes soft-pulse {
+/* Subtle breathing pulse */
+@keyframes expressive-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.5;
-    transform: scale(0.95);
+    opacity: 0.65;
+    transform: scale(0.97);
   }
 }
 
-.animate-soft-pulse {
-  animation: soft-pulse 2.5s infinite ease-in-out;
+.animate-expressive-pulse {
+  animation: expressive-pulse 3s infinite cubic-bezier(0.2, 0, 0, 1);
 }

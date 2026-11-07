@@ -213,8 +213,8 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Top Navbar */}
+    <div className="min-h-screen bg-black text-white flex flex-col font-['Google_Sans_Flex','Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-[#4affbd] selection:text-black">
+      {/* Top Floating Navbar Island */}
       <Navbar
         profile={profile}
         status={status}
@@ -225,17 +225,17 @@ export function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-7">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-7">
         {/* Error notification banner */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in backdrop-blur-md">
+          <div className="p-4 rounded-3xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in backdrop-blur-xl">
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-400 hover:text-rose-200 font-semibold px-2 py-1 text-xs"
+              className="text-rose-400 hover:text-white font-semibold px-2 py-1 text-xs"
             >
               Dismiss
             </button>
@@ -244,14 +244,14 @@ export function App() {
 
         {/* First time setup prompt if no user is set */}
         {!profile && !loading && (
-          <div className="max-w-md mx-auto my-14 p-8 rounded-3xl bg-slate-900/60 border border-white/[0.08] text-center space-y-6 backdrop-blur-2xl shadow-2xl">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-b from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-xl shadow-amber-500/20">
-              <Flame className="w-8 h-8 fill-slate-950" />
+          <div className="max-w-md mx-auto my-14 p-9 rounded-[32px] expressive-card text-center space-y-6 shadow-2xl">
+            <div className="w-16 h-16 mx-auto rounded-[24px] bg-[#4affbd] flex items-center justify-center text-black shadow-xl shadow-[#4affbd]/25 transition-transform duration-300 hover:scale-105">
+              <Flame className="w-9 h-9 fill-black text-black" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white tracking-tight">Enter Your LeetCode Username</h2>
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">Enter LeetCode Username</h2>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Connect your account to view live solved questions, ranking, heatmap calendar, and preserve your daily streak.
+                Connect your account to view live solved stats, global ranking, interactive activity calendar, and enable 1-tap automated streak preservation.
               </p>
             </div>
             <form
@@ -261,18 +261,18 @@ export function App() {
                   loadUserProfile(initUsername.trim());
                 }
               }}
-              className="space-y-3"
+              className="space-y-3.5"
             >
               <input
                 type="text"
                 placeholder="LeetCode username (e.g. lee215)"
                 value={initUsername}
                 onChange={(e) => setInitUsername(e.target.value)}
-                className="w-full bg-slate-950/80 border border-white/[0.08] focus:border-amber-500/50 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition font-mono"
+                className="w-full bg-black/50 border border-white/[0.1] focus:border-[#4affbd] rounded-full px-5 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none transition font-mono"
               />
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-amber-500/15 transition flex items-center justify-center gap-2"
+                className="w-full py-4 px-6 bg-[#4affbd] hover:bg-[#38ef7d] text-black font-extrabold text-xs uppercase tracking-wider rounded-full shadow-lg shadow-[#4affbd]/20 transition flex items-center justify-center gap-2 mint-glow"
               >
                 <span>Load Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -312,11 +312,11 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-white/[0.04] py-6 text-center text-xs text-slate-500">
+      <footer className="w-full border-t border-white/[0.04] py-8 text-center text-xs text-slate-500">
         <p className="flex items-center justify-center gap-2">
           <span>LeetStreak</span>
           <span>•</span>
-          <span>One-Tap LeetCode Streak Preserver</span>
+          <span className="text-[#4affbd] font-semibold">Material Expressive Aesthetics</span>
         </p>
       </footer>
 
