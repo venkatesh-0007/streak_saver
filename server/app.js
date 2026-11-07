@@ -94,8 +94,86 @@ function addHistoryEntry(entry) {
 app.use(cors());
 app.use(express.json());
 
-// API: Get app status & config preview
-app.get('/api/status', (req, res) => {
+// Helper to parse cookies from raw string or object
+function parseCookieInput(input) {
+  if (!input) return { sessionCookie: '', csrfToken: '' };
+  if (typeof input !== 'string') return input;
+
+  let sessionCookie = '';
+  let csrfToken = '';
+
+  const sessionMatch = input.match(/LEETCODE_SESSION=([^;\s]+)/i);
+  if (sessionMatch) {
+    sessionCookie = sessionMatch[1];
+  } else if (!input.includes(';') && !input.includes('=')) {
+    sessionCookie = input.trim();
+  }
+
+  const csrfMatch = input.match(/csrftoken=([^;\s]+)/i);
+  if (csrfMatch) {
+    csrfToken = csrfMatch[1];
+  }
+
+  return { sessionCookie, csrfToken };
+}
+
+// API: One-Time Login endpoint
+app.post('/api/login', async (req, res) => {
+  const { raw, cookieString, sessionCookie: directSession, csrfToken: directCsrf, username: loginUsername, password } = req.body;
+
+  // 1. Direct password login attempt
+  if (loginUsername && password) {
+    return res.status(400).json({
+      ok: false,
+      error: 'LeetCode protects password logins with Google reCAPTCHA. Please use the 1-Time Session Login option.',
+      needSessionLogin: true,
+    });
+  }
+
+  // 2. Cookie / Session Token login
+  const parsed = parseCookieInput(raw || cookieString || directSession);
+  const session = parsed.sessionCookie || directSession;
+  const csrf = parsed.csrfToken || directCsrf;
+
+  if (!session) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Please paste your LEETCODE_SESSION token or full cookie string.',
+    });
+  }
+
+  try {
+    const verified = await verifyCredentials(session, csrf);
+    if (!verified.valid) {
+      return res.status(401).json({
+        ok: false,
+        error: verified.message || 'Invalid or expired LeetCode session token.',
+      });
+    }
+
+    const updated = saveConfig({
+      username: verified.username,
+      sessionCookie: session,
+      csrfToken: verified.csrfToken || csrf,
+    });
+
+    res.json({
+      ok: true,
+      username: verified.username,
+      avatar: verified.avatar,
+      sessionCookie: session,
+      csrfToken: verified.csrfToken || csrf,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// API: Logout
+app.post('/api/logout', (req, res) => {
+  saveConfig({ username: '', sessionCookie: '', csrfToken: '' });
+  res.json({ ok: true });
+});
   const config = getConfig();
   // Also check request headers for client-passed credentials
   const headerSession = req.headers['x-leetcode-session'];
@@ -250,3 +328,4 @@ if (fs.existsSync(distPath)) {
 }
 
 export default app;
+

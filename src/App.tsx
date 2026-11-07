@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
 import {
   Flame,
-  AlertTriangle,
-  Sparkles,
   ArrowRight,
   ShieldAlert,
+  Sparkles,
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StreakHero } from './components/StreakHero';
 import { SolvedStats } from './components/SolvedStats';
 import { HeatmapCalendar } from './components/HeatmapCalendar';
 import { RecentSubmissions } from './components/RecentSubmissions';
-import { SettingsModal } from './components/SettingsModal';
+import { LoginModal } from './components/LoginModal';
 import { QuestionModal } from './components/QuestionModal';
 import { UserProfileData, PresetQuestion, AppStatus, HistoryItem } from './types';
 
@@ -37,13 +35,13 @@ export function App() {
   } | null>(null);
 
   // Modals
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [viewingQuestion, setViewingQuestion] = useState<PresetQuestion | null>(null);
 
   // Username input state for initial screen if empty
   const [initUsername, setInitUsername] = useState('');
 
-  // 1. Initial Load: Status & Presets
+  // 1. Initial Load
   useEffect(() => {
     const initApp = async () => {
       try {
@@ -70,7 +68,6 @@ export function App() {
         }
         setHistory(historyRes);
 
-        // If status or localStorage has username, load it
         const savedUser = statusRes.username || localStorage.getItem('leetcode_username');
         if (savedUser) {
           loadUserProfile(savedUser);
@@ -107,7 +104,7 @@ export function App() {
   const handleSaveStreak = async () => {
     if (!selectedPreset) return;
     setSubmitting(true);
-    setSubmitProgress('Connecting to LeetCode...');
+    setSubmitProgress('Connecting to LeetCode API...');
     setError(null);
 
     try {
@@ -137,23 +134,15 @@ export function App() {
 
       if (!res.ok) {
         if (data.needCredentials) {
-          setIsSettingsOpen(true);
-          throw new Error('Please enter your LEETCODE_SESSION and csrftoken in Settings.');
+          setIsLoginOpen(true);
+          throw new Error('Please login with your LeetCode account to enable automated streak saves.');
         }
         throw new Error(data.error || 'Submission failed');
       }
 
-      setSubmitProgress('Evaluating code verdict...');
+      setSubmitProgress('Waiting for LeetCode verdict...');
 
       if (data.result && data.result.success) {
-        // Trigger celebratory confetti!
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#f59e0b', '#10b981', '#3b82f6', '#ec4899'],
-        });
-
         setLastResult({
           statusMsg: data.result.statusMsg,
           runtime: data.result.runtime,
@@ -161,7 +150,7 @@ export function App() {
           questionTitle: data.question?.title,
         });
 
-        // Refresh profile & history
+        // Smoothly refresh profile & history
         if (profile?.username) {
           setTimeout(() => {
             loadUserProfile(profile.username);
@@ -169,7 +158,7 @@ export function App() {
               .then((r) => r.json())
               .then((h) => setHistory(h))
               .catch(() => {});
-          }, 1200);
+          }, 1000);
         }
       } else {
         throw new Error(data.result?.statusMsg || 'LeetCode rejected submission');
@@ -182,92 +171,87 @@ export function App() {
     }
   };
 
-  // 4. Save settings
-  const handleSaveSettings = async (newSettings: {
-    username: string;
-    sessionCookie: string;
-    csrfToken: string;
-  }) => {
-    if (newSettings.username) {
-      localStorage.setItem('leetcode_username', newSettings.username);
-    }
-    if (newSettings.sessionCookie) {
-      localStorage.setItem('leetcode_session', newSettings.sessionCookie);
-    }
-    if (newSettings.csrfToken) {
-      localStorage.setItem('leetcode_csrf', newSettings.csrfToken);
-    }
+  // 4. One-time Login handler
+  const handleLogin = async (cookieInput: string) => {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cookieString: cookieInput }),
+      });
+      const data = await res.json();
 
-    const res = await fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSettings),
-    });
-    const updated = await res.json();
-    const hasCreds = Boolean(
-      updated.hasCredentials || (localStorage.getItem('leetcode_session') && localStorage.getItem('leetcode_csrf'))
-    );
-    setStatus({
-      username: updated.username || newSettings.username,
-      hasCredentials: hasCreds,
-      serverTimeUtc: new Date().toISOString(),
-    });
+      if (data.ok && data.sessionCookie) {
+        localStorage.setItem('leetcode_session', data.sessionCookie);
+        if (data.csrfToken) {
+          localStorage.setItem('leetcode_csrf', data.csrfToken);
+        }
+        if (data.username) {
+          localStorage.setItem('leetcode_username', data.username);
+          loadUserProfile(data.username);
+        }
+        setStatus({
+          username: data.username,
+          hasCredentials: true,
+          serverTimeUtc: new Date().toISOString(),
+        });
+        return { ok: true, username: data.username };
+      }
 
-    if (newSettings.username) {
-      loadUserProfile(newSettings.username);
+      return { ok: false, error: data.error || 'Authentication failed' };
+    } catch (err: any) {
+      return { ok: false, error: err.message };
     }
   };
 
-  // 5. Verify credentials
-  const handleVerify = async (sessionCookie: string, csrfToken: string) => {
-    const res = await fetch('/api/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionCookie, csrfToken }),
-    });
-    return await res.json();
+  // 5. Logout handler
+  const handleLogout = async () => {
+    localStorage.removeItem('leetcode_session');
+    localStorage.removeItem('leetcode_csrf');
+    await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+    setStatus((prev) => (prev ? { ...prev, hasCredentials: false } : null));
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-amber-500/30 selection:text-amber-200">
       {/* Top Navbar */}
       <Navbar
         profile={profile}
         status={status}
         loading={loading}
         onRefresh={() => profile && loadUserProfile(profile.username)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenLogin={() => setIsLoginOpen(true)}
         onSwitchUser={(user) => loadUserProfile(user)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-7">
         {/* Error notification banner */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-800/80 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in">
+          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in backdrop-blur-md">
             <div className="flex items-center gap-2.5">
-              <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+              <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-400 hover:text-rose-200 font-bold px-2 py-1"
+              className="text-rose-400 hover:text-rose-200 font-semibold px-2 py-1 text-xs"
             >
-              ✕
+              Dismiss
             </button>
           </div>
         )}
 
         {/* First time setup prompt if no user is set */}
         {!profile && !loading && (
-          <div className="max-w-md mx-auto my-12 p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-5 shadow-2xl">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/20">
-              <Flame className="w-9 h-9 fill-white" />
+          <div className="max-w-md mx-auto my-14 p-8 rounded-3xl bg-slate-900/60 border border-white/[0.08] text-center space-y-6 backdrop-blur-2xl shadow-2xl">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-b from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-xl shadow-amber-500/20">
+              <Flame className="w-8 h-8 fill-slate-950" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-extrabold text-white">Enter Your LeetCode Username</h2>
+              <h2 className="text-xl font-bold text-white tracking-tight">Enter Your LeetCode Username</h2>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Connect your profile to view your live stats, streak counter, heatmap, and enable one-tap streak saving.
+                Connect your account to view live solved questions, ranking, heatmap calendar, and preserve your daily streak.
               </p>
             </div>
             <form
@@ -284,13 +268,13 @@ export function App() {
                 placeholder="LeetCode username (e.g. lee215)"
                 value={initUsername}
                 onChange={(e) => setInitUsername(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-slate-950/80 border border-white/[0.08] focus:border-amber-500/50 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition font-mono"
               />
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-amber-500/15 transition flex items-center justify-center gap-2"
               >
-                <span>Load LeetCode Dashboard</span>
+                <span>Load Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -300,7 +284,7 @@ export function App() {
         {/* Dashboard when profile is loaded */}
         {profile && (
           <>
-            {/* 1. Primary Hero: Streak status, countdown & SAVE STREAK button */}
+            {/* 1. Primary Hero */}
             <StreakHero
               profile={profile}
               status={status}
@@ -310,39 +294,40 @@ export function App() {
               onSaveStreak={handleSaveStreak}
               submitting={submitting}
               submitProgress={submitProgress}
-              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenLogin={() => setIsLoginOpen(true)}
               onViewCode={(p) => setViewingQuestion(p)}
               lastResult={lastResult}
             />
 
-            {/* 2. Questions Solved & Acceptance Stats */}
+            {/* 2. Questions Solved & Stats */}
             <SolvedStats profile={profile} />
 
-            {/* 3. LeetCode Heatmap Activity Calendar */}
+            {/* 3. Heatmap Activity Calendar */}
             <HeatmapCalendar profile={profile} />
 
-            {/* 4. Recent Solutions & Streak Saver Log */}
+            {/* 4. Recent Solutions & History Log */}
             <RecentSubmissions profile={profile} history={history} />
           </>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-        <p className="flex items-center justify-center gap-1.5">
-          <span>LeetCode Streak Saver</span>
+      <footer className="w-full border-t border-white/[0.04] py-6 text-center text-xs text-slate-500">
+        <p className="flex items-center justify-center gap-2">
+          <span>LeetStreak</span>
           <span>•</span>
-          <span>Designed for quick mobile & desktop streak preservation</span>
+          <span>One-Tap LeetCode Streak Preserver</span>
         </p>
       </footer>
 
-      {/* Modals */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+      {/* Login & Code Preview Modals */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
         status={status}
-        onSaveSettings={handleSaveSettings}
-        onVerify={handleVerify}
+        profile={profile}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
       />
 
       <QuestionModal
@@ -355,4 +340,3 @@ export function App() {
 }
 
 export default App;
-

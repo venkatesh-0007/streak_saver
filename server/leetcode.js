@@ -135,11 +135,36 @@ export async function getUserProfile(username) {
 }
 
 /**
+ * Fetch a fresh CSRF token from LeetCode
+ */
+export async function fetchFreshCsrfToken() {
+  try {
+    const res = await fetch(`${LEETCODE_BASE}/accounts/login/`, {
+      headers: {
+        'User-Agent': DEFAULT_HEADERS['User-Agent'],
+      },
+    });
+    const setCookie = res.headers.get('set-cookie') || '';
+    const match = setCookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  } catch (err) {
+    console.error('Failed to auto-fetch CSRF token:', err.message);
+    return '';
+  }
+}
+
+/**
  * Verify session cookie and csrf token by querying userStatus
  */
 export async function verifyCredentials(sessionCookie, csrfToken) {
-  if (!sessionCookie || !csrfToken) {
-    return { valid: false, message: 'Missing session cookie or CSRF token' };
+  if (!sessionCookie) {
+    return { valid: false, message: 'Missing LEETCODE_SESSION token' };
+  }
+
+  // If CSRF token is not provided, automatically fetch a fresh one
+  let activeCsrf = csrfToken;
+  if (!activeCsrf) {
+    activeCsrf = await fetchFreshCsrfToken();
   }
 
   const query = `
@@ -157,8 +182,8 @@ export async function verifyCredentials(sessionCookie, csrfToken) {
       method: 'POST',
       headers: {
         ...DEFAULT_HEADERS,
-        'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${csrfToken};`,
-        'x-csrftoken': csrfToken,
+        'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${activeCsrf};`,
+        'x-csrftoken': activeCsrf,
       },
       body: JSON.stringify({ query }),
     });
@@ -175,12 +200,13 @@ export async function verifyCredentials(sessionCookie, csrfToken) {
         valid: true,
         username: status.username,
         avatar: status.avatar,
+        csrfToken: activeCsrf,
       };
     }
 
     return {
       valid: false,
-      message: 'Session is invalid or expired. Please grab a fresh LEETCODE_SESSION and csrftoken.',
+      message: 'Session is invalid or expired. Please provide a fresh LEETCODE_SESSION.',
     };
   } catch (error) {
     return { valid: false, message: error.message };
@@ -198,8 +224,13 @@ export async function submitSolution({
   sessionCookie,
   csrfToken,
 }) {
-  if (!sessionCookie || !csrfToken) {
-    throw new Error('LEETCODE_SESSION and csrftoken are required to submit code.');
+  if (!sessionCookie) {
+    throw new Error('LEETCODE_SESSION is required to submit code.');
+  }
+
+  let activeCsrf = csrfToken;
+  if (!activeCsrf) {
+    activeCsrf = await fetchFreshCsrfToken();
   }
 
   const submitUrl = `${LEETCODE_BASE}/problems/${slug}/submit/`;
@@ -208,8 +239,8 @@ export async function submitSolution({
     'Content-Type': 'application/json',
     'Origin': LEETCODE_BASE,
     'Referer': `${LEETCODE_BASE}/problems/${slug}/`,
-    'x-csrftoken': csrfToken,
-    'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${csrfToken};`,
+    'x-csrftoken': activeCsrf,
+    'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${activeCsrf};`,
     'User-Agent':
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
   };

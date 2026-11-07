@@ -12,7 +12,7 @@ interface DayCell {
   utcTs: number;
   count: number;
   isToday: boolean;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  dayOfWeek: number;
 }
 
 export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => {
@@ -24,18 +24,14 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
 
   const calendarData = profile.calendar.submissionCalendar || {};
 
-  // Compute 52-53 weeks ending on today
   const { weeks, monthLabels, totalYearSubmissions } = useMemo(() => {
     const today = new Date();
-    // Normalize today to UTC day start
     const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
     const todayTs = todayUtc.getTime() / 1000;
 
-    // Go back ~364 days to previous Sunday
     const daysBack = 364;
     const startDate = new Date(todayUtc);
     startDate.setUTCDate(startDate.getUTCDate() - daysBack);
-    // Adjust to starting Sunday
     const dayOfWeek = startDate.getUTCDay();
     startDate.setUTCDate(startDate.getUTCDate() - dayOfWeek);
 
@@ -60,7 +56,6 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
       cur.setUTCDate(cur.getUTCDate() + 1);
     }
 
-    // Group into weeks (columns of 7 days)
     const weeksList: DayCell[][] = [];
     let currentWeek: DayCell[] = [];
 
@@ -75,7 +70,6 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
       weeksList.push(currentWeek);
     }
 
-    // Determine month labels positions
     const months: Array<{ label: string; colIndex: number }> = [];
     let lastMonth = -1;
 
@@ -94,51 +88,49 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
     return { weeks: weeksList, monthLabels: months, totalYearSubmissions: totalSubs };
   }, [calendarData]);
 
-  // Color mapping based on submission count
   const getColorClass = (count: number, isToday: boolean) => {
     if (count === 0) {
       return isToday
         ? 'bg-slate-800 border-2 border-amber-400 ring-2 ring-amber-400/20'
-        : 'bg-slate-850 hover:bg-slate-800 border border-slate-800/80';
+        : 'bg-slate-850 hover:bg-slate-700/80 border border-white/[0.04]';
     }
     if (count === 1) {
       return isToday
-        ? 'bg-emerald-800 border-2 border-amber-400 ring-2 ring-amber-400/30'
-        : 'bg-emerald-900 hover:bg-emerald-800 border border-emerald-800/60';
+        ? 'bg-emerald-900 border-2 border-amber-400 ring-2 ring-amber-400/30'
+        : 'bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/40';
     }
     if (count <= 3) {
       return isToday
         ? 'bg-emerald-600 border-2 border-amber-400 ring-2 ring-amber-400/30'
-        : 'bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/60';
+        : 'bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-600/50';
     }
     return isToday
       ? 'bg-emerald-400 border-2 border-amber-400 ring-2 ring-amber-400/30'
-      : 'bg-emerald-400 hover:bg-emerald-300 border border-emerald-300/80';
+      : 'bg-emerald-500 hover:bg-emerald-400 border border-emerald-400/60';
   };
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md">
+    <div className="bg-slate-900/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-amber-400" />
-          <h3 className="font-bold text-slate-100 text-base">Submission Activity</h3>
+          <Calendar className="w-4 h-4 text-amber-400" />
+          <h3 className="font-semibold text-slate-100 text-sm tracking-tight">Submission Activity</h3>
         </div>
-        <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
+        <div className="flex items-center gap-3 text-xs text-slate-400">
           <span>
-            <strong className="text-white font-mono">{totalYearSubmissions.toLocaleString()}</strong> submissions in the last year
+            <strong className="text-white font-mono">{totalYearSubmissions.toLocaleString()}</strong> submissions in past 12 months
           </span>
-          <span className="hidden sm:inline text-slate-600">•</span>
-          <span className="hidden sm:inline">
-            Max streak: <strong className="text-amber-400 font-mono">{profile.calendar.streak}</strong>
+          <span className="text-slate-600">•</span>
+          <span>
+            Streak: <strong className="text-amber-400 font-mono">{profile.calendar.streak}</strong>
           </span>
         </div>
       </div>
 
-      {/* Heatmap Grid Container with horizontal scroll on mobile */}
       <div className="relative overflow-x-auto pb-2 pt-1">
         <div className="inline-block min-w-[760px] select-none">
-          {/* Month labels header */}
-          <div className="flex text-[10px] text-slate-400 font-medium mb-1 pl-7">
+          {/* Months header */}
+          <div className="flex text-[10px] text-slate-400 font-medium mb-1.5 pl-7">
             {monthLabels.map((m, idx) => (
               <div
                 key={idx}
@@ -154,7 +146,6 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
           </div>
 
           <div className="flex gap-1">
-            {/* Weekday labels (Mon, Wed, Fri) */}
             <div className="flex flex-col justify-between text-[9px] text-slate-500 pr-2 py-0.5 h-[105px]">
               <span>Sun</span>
               <span>Tue</span>
@@ -162,30 +153,27 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
               <span>Sat</span>
             </div>
 
-            {/* Weeks Columns */}
             <div className="flex gap-[3.5px]">
               {weeks.map((week, weekIdx) => (
                 <div key={weekIdx} className="flex flex-col gap-[3.5px]">
-                  {week.map((day) => {
-                    return (
-                      <div
-                        key={day.dateStr}
-                        onMouseEnter={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setHoveredCell({
-                            cell: day,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top - 8,
-                          });
-                        }}
-                        onMouseLeave={() => setHoveredCell(null)}
-                        className={`w-[11.5px] h-[11.5px] rounded-[2.5px] transition-colors cursor-pointer ${getColorClass(
-                          day.count,
-                          day.isToday
-                        )}`}
-                      />
-                    );
-                  })}
+                  {week.map((day) => (
+                    <div
+                      key={day.dateStr}
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setHoveredCell({
+                          cell: day,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top - 8,
+                        });
+                      }}
+                      onMouseLeave={() => setHoveredCell(null)}
+                      className={`w-[11.5px] h-[11.5px] rounded-[2.5px] transition-colors cursor-pointer ${getColorClass(
+                        day.count,
+                        day.isToday
+                      )}`}
+                    />
+                  ))}
                 </div>
               ))}
             </div>
@@ -195,7 +183,7 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
         {/* Floating Tooltip */}
         {hoveredCell && (
           <div
-            className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full px-2.5 py-1.5 rounded-lg bg-slate-950 text-slate-100 text-xs shadow-2xl border border-slate-700 font-medium whitespace-nowrap"
+            className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full px-2.5 py-1.5 rounded-lg bg-slate-950/95 text-slate-100 text-xs shadow-2xl border border-white/[0.1] font-medium whitespace-nowrap backdrop-blur-md"
             style={{ left: `${hoveredCell.x}px`, top: `${hoveredCell.y}px` }}
           >
             <div className="flex items-center gap-1.5">
@@ -213,20 +201,19 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
         )}
       </div>
 
-      {/* Legend & Hint */}
-      <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
+      <div className="mt-4 pt-3 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
         <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
           <Info className="w-3.5 h-3.5 text-amber-400" />
-          <span>Gold border marks today's cell. Changes reflect immediately on submission.</span>
+          <span>Gold border highlights today. Preserved streaks update live.</span>
         </div>
 
         <div className="flex items-center gap-2 text-[11px]">
           <span>Less</span>
           <div className="flex gap-1 items-center">
-            <span className="w-3 h-3 rounded-[2px] bg-slate-850 border border-slate-800" />
-            <span className="w-3 h-3 rounded-[2px] bg-emerald-900" />
-            <span className="w-3 h-3 rounded-[2px] bg-emerald-600" />
-            <span className="w-3 h-3 rounded-[2px] bg-emerald-400" />
+            <span className="w-3 h-3 rounded-[2px] bg-slate-850 border border-white/[0.04]" />
+            <span className="w-3 h-3 rounded-[2px] bg-emerald-950" />
+            <span className="w-3 h-3 rounded-[2px] bg-emerald-700" />
+            <span className="w-3 h-3 rounded-[2px] bg-emerald-500" />
           </div>
           <span>More</span>
         </div>
@@ -234,4 +221,3 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ profile }) => 
     </div>
   );
 };
-

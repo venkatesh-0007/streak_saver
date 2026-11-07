@@ -1,0 +1,17 @@
+{
+  "name": "LeetStreak - LeetCode Streak Saver",
+  "short_name": "LeetStreak",
+  "description": "Never lose your LeetCode daily streak. One-tap automated streak saver.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

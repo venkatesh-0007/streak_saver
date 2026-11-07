@@ -2,53 +2,82 @@
 
 @layer base {
   * {
-    border-color: #334155;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  body {
+    background-color: #030712;
+    color: #f3f4f6;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Custom scrollbars */
+/* Custom sleek scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(255, 255, 255, 0.22);
 }
 
-@keyframes flame-pulse {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
-  }
-  50% {
-    transform: scale(1.08);
-    filter: drop-shadow(0 0 24px rgba(239, 68, 68, 0.8));
-  }
+/* Subtle glassmorphism */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
 }
 
-.animate-flame {
-  animation: flame-pulse 2s infinite ease-in-out;
+.glass-panel-subtle {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-@keyframes shimmer {
+/* Professional Ambient Glows */
+.ambient-glow-amber {
+  box-shadow: 0 0 50px -12px rgba(245, 158, 11, 0.2);
+}
+
+.ambient-glow-emerald {
+  box-shadow: 0 0 50px -12px rgba(16, 185, 129, 0.2);
+}
+
+/* Smooth shimmering sheen on hero card */
+@keyframes subtle-sheen {
   0% {
-    background-position: -200% 0;
+    transform: translateX(-100%);
   }
   100% {
-    background-position: 200% 0;
+    transform: translateX(200%);
   }
 }
 
-.shimmer-bg {
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite;
+.animate-sheen {
+  animation: subtle-sheen 6s infinite ease-in-out;
 }
 
+/* Soft pulsating status dot */
+@keyframes soft-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2.5s infinite ease-in-out;
+}
