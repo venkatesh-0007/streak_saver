@@ -3,6 +3,8 @@ import {
   Flame,
   ArrowRight,
   ShieldAlert,
+  Zap,
+  CheckCircle2,
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { UserHeader } from './components/UserHeader';
@@ -14,7 +16,16 @@ import { QuestionModal } from './components/QuestionModal';
 import { UserProfileData, PresetQuestion, AppStatus, HistoryItem } from './types';
 
 export function App() {
-  const [status, setStatus] = useState<AppStatus | null>(null);
+  const [status, setStatus] = useState<AppStatus>(() => {
+    const localUser = localStorage.getItem('leetcode_username') || '';
+    const localSession = localStorage.getItem('leetcode_session');
+    const localCsrf = localStorage.getItem('leetcode_csrf');
+    return {
+      username: localUser,
+      hasCredentials: Boolean(localSession && localCsrf),
+      serverTimeUtc: new Date().toISOString(),
+    };
+  });
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [presets, setPresets] = useState<PresetQuestion[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<PresetQuestion | null>(null);
@@ -60,6 +71,10 @@ export function App() {
 
         const hasCreds = statusRes.hasCredentials || Boolean(localSession && localCsrf);
         setStatus({ ...statusRes, hasCredentials: hasCreds });
+
+        if (statusRes.username) {
+          localStorage.setItem('leetcode_username', statusRes.username);
+        }
 
         setPresets(presetsRes);
         if (presetsRes.length > 0) {
@@ -304,8 +319,54 @@ export function App() {
             {/* 3. Number of questions solved entirely */}
             <SolvedStats profile={profile} />
 
-            {/* 4. Activity Feed & Streak Logs (arranged accordingly) */}
+            {/* 4. Activity Feed & Streak Logs */}
             <RecentSubmissions profile={profile} history={history} />
+
+            {/* Mobile Sticky Quick Action Bar (Fixed at bottom for instant thumb access on phones) */}
+            <div className="sm:hidden fixed bottom-3 inset-x-3 z-40 p-2 bg-[#1e1e1e]/95 backdrop-blur-xl border border-white/[0.15] rounded-2xl shadow-2xl flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 pl-1.5 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#FFA116]/15 text-[#FFA116] flex items-center justify-center font-bold">
+                  <Flame className="w-4 h-4 fill-[#FFA116]" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-white font-mono leading-none">
+                    {profile.calendar.streak}d streak
+                  </div>
+                  <div className="text-[10px] text-[#8A8A8E] mt-0.5">
+                    {profile.calendar.isTodaySolved ? '✓ Preserved' : '⚠️ Due Today'}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSaveStreak}
+                disabled={submitting || !status?.hasCredentials}
+                className={`flex-1 py-3 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md active:scale-[0.98] ${
+                  submitting
+                    ? 'bg-[#FFA116]/80 text-black cursor-wait'
+                    : profile.calendar.isTodaySolved
+                    ? 'bg-[#282828] text-[#00B8A3] border border-[#00B8A3]/40'
+                    : 'bg-[#FFA116] text-black shadow-[#FFA116]/30'
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : profile.calendar.isTodaySolved ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00B8A3]" />
+                    <span>Streak Safe</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 fill-black" />
+                    <span>⚡ SAVE STREAK NOW</span>
+                  </>
+                )}
+              </button>
+            </div>
           </>
         )}
       </main>

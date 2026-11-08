@@ -125,6 +125,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <p className="text-xs text-[#8A8A8E] mt-0.5">
                     Ready for 1-tap automated streak saving.
                   </p>
+                  <p className="text-[11px] text-[#00B8A3] mt-1 font-medium">
+                    ✓ Permanently saved across page refreshes. No need to connect again!
+                  </p>
                 </div>
               </div>
               <button
