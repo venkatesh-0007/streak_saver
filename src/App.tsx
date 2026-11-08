@@ -8,7 +8,6 @@ import { Navbar } from './components/Navbar';
 import { UserHeader } from './components/UserHeader';
 import { HeatmapCalendar } from './components/HeatmapCalendar';
 import { SolvedStats } from './components/SolvedStats';
-import { StreakHero } from './components/StreakHero';
 import { RecentSubmissions } from './components/RecentSubmissions';
 import { LoginModal } from './components/LoginModal';
 import { QuestionModal } from './components/QuestionModal';
@@ -284,20 +283,8 @@ export function App() {
         {/* Dashboard when profile is loaded - Specifically arranged as requested */}
         {profile && (
           <>
-            {/* 1. User Profile & Streak Overview */}
+            {/* 1. User Profile & Integrated 1-Tap Streak Saver Command Center */}
             <UserHeader
-              profile={profile}
-              onOpenLogin={() => setIsLoginOpen(true)}
-            />
-
-            {/* 2. SECTION 1: Heatmap at beginning with Month Divided */}
-            <HeatmapCalendar profile={profile} />
-
-            {/* 3. SECTION 2: Number of questions solved entirely */}
-            <SolvedStats profile={profile} />
-
-            {/* 4. SECTION 3: The button to make a submission */}
-            <StreakHero
               profile={profile}
               status={status}
               presets={presets}
@@ -311,7 +298,13 @@ export function App() {
               lastResult={lastResult}
             />
 
-            {/* 5. SECTION 4: Activity Feed & Streak Logs (arranged accordingly) */}
+            {/* 2. Heatmap at beginning with Month Divided (Single horizontal section) */}
+            <HeatmapCalendar profile={profile} />
+
+            {/* 3. Number of questions solved entirely */}
+            <SolvedStats profile={profile} />
+
+            {/* 4. Activity Feed & Streak Logs (arranged accordingly) */}
             <RecentSubmissions profile={profile} history={history} />
           </>
         )}
