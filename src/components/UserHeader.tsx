@@ -131,3 +131,4 @@ export const UserHeader: React.FC<UserHeaderProps> = ({ profile }) => {
     </div>
   );
 };
+
