@@ -23,40 +23,43 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
   };
 
   return (
-    <div className="expressive-card p-6 sm:p-7 shadow-xl">
+    <div className="lc-card p-4 sm:p-6 transition-all space-y-4">
       {/* Header with pill switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#4affbd]/15 text-[#4affbd] flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-xl bg-[#FFA116]/15 text-[#FFA116] flex items-center justify-center font-bold">
             <Activity className="w-4 h-4" />
           </div>
-          <h3 className="font-bold text-white text-base tracking-tight">Recent Activity</h3>
+          <div>
+            <h2 className="font-bold text-white text-base tracking-tight">Recent Activity</h2>
+            <p className="text-xs text-[#8A8A8E]">Live submissions and automated streak saves</p>
+          </div>
         </div>
 
-        <div className="flex rounded-full bg-black/50 p-1 border border-white/[0.08] text-xs font-semibold self-start sm:self-auto">
+        <div className="flex rounded-lg bg-[#282828] p-1 border border-white/[0.06] text-xs font-semibold self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('recent')}
-            className={`px-4 py-1.5 rounded-full transition ${
+            className={`px-3 py-1 rounded-md transition ${
               activeTab === 'recent'
-                ? 'bg-[#4affbd] text-black font-extrabold shadow'
-                : 'text-slate-300 hover:text-white'
+                ? 'bg-[#FFA116] text-black font-bold shadow'
+                : 'text-[#8A8A8E] hover:text-white'
             }`}
           >
             LeetCode Submissions
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-1.5 rounded-full transition flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${
               activeTab === 'history'
-                ? 'bg-[#4affbd] text-black font-extrabold shadow'
-                : 'text-slate-300 hover:text-white'
+                ? 'bg-[#FFA116] text-black font-bold shadow'
+                : 'text-[#8A8A8E] hover:text-white'
             }`}
           >
             <History className="w-3.5 h-3.5" />
-            <span>Streak Logs</span>
+            <span>Streak Saver Logs</span>
             {history.length > 0 && (
-              <span className={`px-2 py-0.2 rounded-full text-[10px] ${
-                activeTab === 'history' ? 'bg-black text-[#4affbd]' : 'bg-white/10 text-white'
+              <span className={`px-1.5 py-0.2 rounded text-[10px] ${
+                activeTab === 'history' ? 'bg-black text-[#FFA116]' : 'bg-[#333333] text-white'
               }`}>
                 {history.length}
               </span>
@@ -69,37 +72,37 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
       {activeTab === 'recent' && (
         <div className="space-y-2">
           {profile.recentSubmissions && profile.recentSubmissions.length > 0 ? (
-            <div className="divide-y divide-white/[0.04] max-h-[340px] overflow-y-auto pr-1">
+            <div className="divide-y divide-white/[0.06] max-h-[340px] overflow-y-auto pr-1">
               {profile.recentSubmissions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="py-3 flex items-center justify-between hover:bg-white/[0.03] px-3 rounded-2xl transition"
+                  className="py-3 flex items-center justify-between hover:bg-white/[0.02] px-2.5 rounded-xl transition"
                 >
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-[#4affbd] shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-[#00B8A3] shrink-0" />
                     <div>
                       <a
                         href={`https://leetcode.com/problems/${sub.titleSlug}/`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs sm:text-sm font-semibold text-white hover:text-[#4affbd] transition flex items-center gap-1"
+                        className="text-xs sm:text-sm font-semibold text-white hover:text-[#FFA116] transition flex items-center gap-1"
                       >
                         <span>{sub.title}</span>
                         <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
                       </a>
-                      <span className="text-[10px] text-slate-500 font-mono">
-                        ID: {sub.id}
+                      <span className="text-[10px] text-[#8A8A8E] font-mono">
+                        Submission ID: {sub.id}
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs text-slate-400 font-mono font-medium">
+                  <span className="text-xs text-[#8A8A8E] font-mono font-medium">
                     {formatTimeAgo(sub.timestamp)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-slate-400 text-sm">
+            <div className="text-center py-8 text-[#8A8A8E] text-sm">
               No recent accepted submissions found for this user.
             </div>
           )}
@@ -110,16 +113,16 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
       {activeTab === 'history' && (
         <div className="space-y-2">
           {history.length > 0 ? (
-            <div className="divide-y divide-white/[0.04] max-h-[340px] overflow-y-auto pr-1">
+            <div className="divide-y divide-white/[0.06] max-h-[340px] overflow-y-auto pr-1">
               {history.map((item) => (
                 <div
                   key={item.id}
-                  className="py-3 flex items-center justify-between hover:bg-white/[0.03] px-3 rounded-2xl transition"
+                  className="py-3 flex items-center justify-between hover:bg-white/[0.02] px-2.5 rounded-xl transition"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`p-1.5 rounded-xl ${
-                        item.success ? 'bg-[#4affbd]/15 text-[#4affbd]' : 'bg-[#ff64f9]/15 text-[#ff64f9]'
+                      className={`p-1.5 rounded-lg ${
+                        item.success ? 'bg-[#00B8A3]/15 text-[#00B8A3]' : 'bg-[#FF375F]/15 text-[#FF375F]'
                       }`}
                     >
                       <CheckCircle2 className="w-4 h-4" />
@@ -128,8 +131,8 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
                       <p className="text-xs sm:text-sm font-bold text-white">
                         {item.questionTitle}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                        <span className="text-[#4affbd] font-bold">{item.statusMsg}</span>
+                      <div className="flex items-center gap-2 text-[10px] text-[#8A8A8E] font-mono">
+                        <span className="text-[#00B8A3] font-bold">{item.statusMsg}</span>
                         {item.runtime && (
                           <>
                             <span>•</span>
@@ -146,10 +149,10 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-300 font-mono font-medium">
+                    <span className="text-xs text-white font-mono font-medium">
                       {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <p className="text-[10px] text-slate-500 font-mono">
+                    <p className="text-[10px] text-[#8A8A8E] font-mono">
                       {new Date(item.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                     </p>
                   </div>
@@ -157,7 +160,7 @@ export const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ profile, h
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-slate-400 text-sm">
+            <div className="text-center py-8 text-[#8A8A8E] text-sm">
               No streak saves logged yet. Hit the "Save Streak" button to preserve your streak!
             </div>
           )}

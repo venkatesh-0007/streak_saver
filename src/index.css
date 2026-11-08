@@ -2,15 +2,14 @@
 
 @layer base {
   :root {
-    --primary-color: #4affbd;
-    --primary-glow: rgba(74, 255, 189, 0.2);
-    --yellow: #ffe855;
-    --orange: #ff6d1b;
-    --pink: #ff64f9;
-    --blue: #4d8aff;
-    --green: #5bff89;
-    --radius-out: 28px;
-    --radius-in: 18px;
+    --leetcode-accent: #FFA116;
+    --leetcode-easy: #00B8A3;
+    --leetcode-medium: #FFC01E;
+    --leetcode-hard: #FF375F;
+    --bg-main: #141414;
+    --bg-card: #1E1E1E;
+    --bg-subcard: #282828;
+    --border-color: rgba(255, 255, 255, 0.08);
   }
 
   * {
@@ -18,11 +17,11 @@
   }
 
   body {
-    background-color: #000000;
-    color: #ffffff;
-    font-family: "Google Sans Flex", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    background-color: #141414;
+    color: #eff0f6;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -35,71 +34,44 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.28);
 }
 
-/* Sameerasw-inspired Expressive Material You Frosted Glass */
-.expressive-card {
-  background: rgba(20, 23, 30, 0.65);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+/* LeetCode Dark Cards */
+.lc-card {
+  background: #1e1e1e;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-out);
-  transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
 }
 
-.expressive-card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.expressive-subcard {
-  background: rgba(255, 255, 255, 0.04);
+.lc-subcard {
+  background: #282828;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-in);
-  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 12px;
 }
 
-.expressive-subcard:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-/* Floating Navigation Island */
-.floating-pill-nav {
-  background: rgba(18, 21, 28, 0.85);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(74, 255, 189, 0.1);
-  transition: all 0.45s cubic-bezier(0.2, 0, 0, 1);
-}
-
-/* Signature Mint Glow */
-.mint-glow {
-  box-shadow: 0 0 35px -8px rgba(74, 255, 189, 0.35);
-}
-
-.yellow-glow {
-  box-shadow: 0 0 35px -8px rgba(255, 232, 85, 0.35);
+/* LeetCode Amber Glow */
+.lc-glow-accent {
+  box-shadow: 0 0 25px -4px rgba(255, 161, 22, 0.25);
 }
 
 /* Subtle breathing pulse */
-@keyframes expressive-pulse {
+@keyframes lc-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.65;
-    transform: scale(0.97);
+    opacity: 0.55;
+    transform: scale(0.96);
   }
 }
 
-.animate-expressive-pulse {
-  animation: expressive-pulse 3s infinite cubic-bezier(0.2, 0, 0, 1);
+.animate-lc-pulse {
+  animation: lc-pulse 2.4s infinite ease-in-out;
 }

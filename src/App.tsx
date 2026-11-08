@@ -3,12 +3,12 @@ import {
   Flame,
   ArrowRight,
   ShieldAlert,
-  Sparkles,
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
-import { StreakHero } from './components/StreakHero';
-import { SolvedStats } from './components/SolvedStats';
+import { UserHeader } from './components/UserHeader';
 import { HeatmapCalendar } from './components/HeatmapCalendar';
+import { SolvedStats } from './components/SolvedStats';
+import { StreakHero } from './components/StreakHero';
 import { RecentSubmissions } from './components/RecentSubmissions';
 import { LoginModal } from './components/LoginModal';
 import { QuestionModal } from './components/QuestionModal';
@@ -150,7 +150,7 @@ export function App() {
           questionTitle: data.question?.title,
         });
 
-        // Smoothly refresh profile & history
+        // Refresh profile & history
         if (profile?.username) {
           setTimeout(() => {
             loadUserProfile(profile.username);
@@ -213,8 +213,8 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-['Google_Sans_Flex','Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-[#4affbd] selection:text-black">
-      {/* Top Floating Navbar Island */}
+    <div className="min-h-screen bg-[#141414] text-[#eff0f6] flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#FFA116] selection:text-black">
+      {/* Top Navbar */}
       <Navbar
         profile={profile}
         status={status}
@@ -224,18 +224,18 @@ export function App() {
         onSwitchUser={(user) => loadUserProfile(user)}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-7">
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Error notification banner */}
         {error && (
-          <div className="p-4 rounded-3xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in backdrop-blur-xl">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in">
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-400 hover:text-white font-semibold px-2 py-1 text-xs"
+              className="text-rose-400 hover:text-white font-bold px-2 py-1 text-xs"
             >
               Dismiss
             </button>
@@ -244,14 +244,14 @@ export function App() {
 
         {/* First time setup prompt if no user is set */}
         {!profile && !loading && (
-          <div className="max-w-md mx-auto my-14 p-9 rounded-[32px] expressive-card text-center space-y-6 shadow-2xl">
-            <div className="w-16 h-16 mx-auto rounded-[24px] bg-[#4affbd] flex items-center justify-center text-black shadow-xl shadow-[#4affbd]/25 transition-transform duration-300 hover:scale-105">
-              <Flame className="w-9 h-9 fill-black text-black" />
+          <div className="max-w-md mx-auto my-12 p-6 sm:p-8 lc-card text-center space-y-5">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#FFA116] flex items-center justify-center text-black shadow-lg shadow-[#FFA116]/20">
+              <Flame className="w-8 h-8 fill-black text-black" />
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">Enter LeetCode Username</h2>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Connect your account to view live solved stats, global ranking, interactive activity calendar, and enable 1-tap automated streak preservation.
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-black text-white tracking-tight">Enter LeetCode Username</h2>
+              <p className="text-xs text-[#8A8A8E] leading-relaxed">
+                Connect your profile to view month-divided heatmap activity, solved questions progress, and enable 1-tap automated streak saving.
               </p>
             </div>
             <form
@@ -261,18 +261,18 @@ export function App() {
                   loadUserProfile(initUsername.trim());
                 }
               }}
-              className="space-y-3.5"
+              className="space-y-3"
             >
               <input
                 type="text"
                 placeholder="LeetCode username (e.g. lee215)"
                 value={initUsername}
                 onChange={(e) => setInitUsername(e.target.value)}
-                className="w-full bg-black/50 border border-white/[0.1] focus:border-[#4affbd] rounded-full px-5 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none transition font-mono"
+                className="w-full bg-[#282828] border border-white/[0.1] focus:border-[#FFA116] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none transition font-mono"
               />
               <button
                 type="submit"
-                className="w-full py-4 px-6 bg-[#4affbd] hover:bg-[#38ef7d] text-black font-extrabold text-xs uppercase tracking-wider rounded-full shadow-lg shadow-[#4affbd]/20 transition flex items-center justify-center gap-2 mint-glow"
+                className="w-full py-3.5 px-5 bg-[#FFA116] hover:bg-[#ffb43a] text-black font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#FFA116]/15 transition flex items-center justify-center gap-2"
               >
                 <span>Load Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -281,10 +281,22 @@ export function App() {
           </div>
         )}
 
-        {/* Dashboard when profile is loaded */}
+        {/* Dashboard when profile is loaded - Specifically arranged as requested */}
         {profile && (
           <>
-            {/* 1. Primary Hero */}
+            {/* 1. User Profile & Streak Overview */}
+            <UserHeader
+              profile={profile}
+              onOpenLogin={() => setIsLoginOpen(true)}
+            />
+
+            {/* 2. SECTION 1: Heatmap at beginning with Month Divided */}
+            <HeatmapCalendar profile={profile} />
+
+            {/* 3. SECTION 2: Number of questions solved entirely */}
+            <SolvedStats profile={profile} />
+
+            {/* 4. SECTION 3: The button to make a submission */}
             <StreakHero
               profile={profile}
               status={status}
@@ -299,28 +311,22 @@ export function App() {
               lastResult={lastResult}
             />
 
-            {/* 2. Questions Solved & Stats */}
-            <SolvedStats profile={profile} />
-
-            {/* 3. Heatmap Activity Calendar */}
-            <HeatmapCalendar profile={profile} />
-
-            {/* 4. Recent Solutions & History Log */}
+            {/* 5. SECTION 4: Activity Feed & Streak Logs (arranged accordingly) */}
             <RecentSubmissions profile={profile} history={history} />
           </>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-white/[0.04] py-8 text-center text-xs text-slate-500">
+      <footer className="w-full border-t border-white/[0.06] py-6 text-center text-xs text-[#8A8A8E]">
         <p className="flex items-center justify-center gap-2">
           <span>LeetStreak</span>
           <span>•</span>
-          <span className="text-[#4affbd] font-semibold">Material Expressive Aesthetics</span>
+          <span className="text-[#FFA116] font-semibold">LeetCode Accent Theme</span>
         </p>
       </footer>
 
-      {/* Login & Code Preview Modals */}
+      {/* Modals */}
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
