@@ -19,10 +19,9 @@ export function App() {
   const [status, setStatus] = useState<AppStatus>(() => {
     const localUser = localStorage.getItem('leetcode_username') || '';
     const localSession = localStorage.getItem('leetcode_session');
-    const localCsrf = localStorage.getItem('leetcode_csrf');
     return {
       username: localUser,
-      hasCredentials: Boolean(localSession && localCsrf),
+      hasCredentials: Boolean(localSession),
       serverTimeUtc: new Date().toISOString(),
     };
   });
@@ -69,7 +68,7 @@ export function App() {
           fetch('/api/history').then((r) => r.json()),
         ]);
 
-        const hasCreds = statusRes.hasCredentials || Boolean(localSession && localCsrf);
+        const hasCreds = Boolean(statusRes.hasCredentials || localSession);
         setStatus({ ...statusRes, hasCredentials: hasCreds });
 
         if (statusRes.username) {

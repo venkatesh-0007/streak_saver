@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { getUserProfile, verifyCredentials, submitSolution } from './leetcode.js';
+import { getUserProfile, verifyCredentials, submitSolution, fetchFreshCsrfToken } from './leetcode.js';
 import { PRESET_QUESTIONS } from './presets.js';
 
 dotenv.config();
@@ -95,23 +95,32 @@ app.use(cors());
 app.use(express.json());
 
 // Helper to parse cookies from raw string or object
-function parseCookieInput(input) {
+export function parseCookieInput(input) {
   if (!input) return { sessionCookie: '', csrfToken: '' };
   if (typeof input !== 'string') return input;
 
   let sessionCookie = '';
   let csrfToken = '';
 
-  const sessionMatch = input.match(/LEETCODE_SESSION=([^;\s]+)/i);
+  const cleanInput = input.trim();
+
+  // Match LEETCODE_SESSION=... in a cookie string
+  const sessionMatch = cleanInput.match(/LEETCODE_SESSION=([^;\s]+)/i);
   if (sessionMatch) {
-    sessionCookie = sessionMatch[1];
-  } else if (!input.includes(';') && !input.includes('=')) {
-    sessionCookie = input.trim();
+    sessionCookie = sessionMatch[1].replace(/^["']|["']$/g, '');
   }
 
-  const csrfMatch = input.match(/csrftoken=([^;\s]+)/i);
+  // Match csrftoken=... in a cookie string
+  const csrfMatch = cleanInput.match(/csrftoken=([^;\s]+)/i);
   if (csrfMatch) {
-    csrfToken = csrfMatch[1];
+    csrfToken = csrfMatch[1].replace(/^["']|["']$/g, '');
+  }
+
+  // If user pasted raw LEETCODE_SESSION value directly (not in "LEETCODE_SESSION=..." format)
+  if (!sessionCookie) {
+    if (!cleanInput.includes(';') && !cleanInput.toLowerCase().includes('cookie:')) {
+      sessionCookie = cleanInput.replace(/^["']|["']$/g, '');
+    }
   }
 
   return { sessionCookie, csrfToken };
@@ -133,13 +142,17 @@ app.post('/api/login', async (req, res) => {
   // 2. Cookie / Session Token login
   const parsed = parseCookieInput(raw || cookieString || directSession);
   const session = parsed.sessionCookie || directSession;
-  const csrf = parsed.csrfToken || directCsrf;
+  let csrf = parsed.csrfToken || directCsrf;
 
   if (!session) {
     return res.status(400).json({
       ok: false,
       error: 'Please paste your LEETCODE_SESSION token or full cookie string.',
     });
+  }
+
+  if (!csrf) {
+    csrf = await fetchFreshCsrfToken();
   }
 
   try {
@@ -178,12 +191,8 @@ app.post('/api/logout', (req, res) => {
 // API: Get app status & config preview
 app.get('/api/status', (req, res) => {
   const config = getConfig();
-  // Also check request headers for client-passed credentials
   const headerSession = req.headers['x-leetcode-session'];
-  const headerCsrf = req.headers['x-leetcode-csrftoken'];
-  const hasCreds = Boolean(
-    (config.sessionCookie && config.csrfToken) || (headerSession && headerCsrf)
-  );
+  const hasCreds = Boolean(config.sessionCookie || headerSession);
 
   res.json({
     username: config.username,
@@ -214,14 +223,18 @@ app.post('/api/verify', async (req, res) => {
   const config = getConfig();
   const sessionCookie =
     req.body.sessionCookie || req.headers['x-leetcode-session'] || config.sessionCookie;
-  const csrfToken =
+  let csrfToken =
     req.body.csrfToken || req.headers['x-leetcode-csrftoken'] || config.csrfToken;
 
-  if (!sessionCookie || !csrfToken) {
+  if (!sessionCookie) {
     return res.status(400).json({
       valid: false,
-      message: 'LEETCODE_SESSION and csrftoken are required.',
+      message: 'LEETCODE_SESSION is required.',
     });
+  }
+
+  if (!csrfToken) {
+    csrfToken = await fetchFreshCsrfToken();
   }
 
   const result = await verifyCredentials(sessionCookie, csrfToken);
@@ -234,14 +247,19 @@ app.post('/api/save-streak', async (req, res) => {
     const config = getConfig();
     const sessionCookie =
       req.body.sessionCookie || req.headers['x-leetcode-session'] || config.sessionCookie;
-    const csrfToken =
+    let csrfToken =
       req.body.csrfToken || req.headers['x-leetcode-csrftoken'] || config.csrfToken;
 
-    if (!sessionCookie || !csrfToken) {
+    if (!sessionCookie) {
       return res.status(401).json({
-        error: 'Missing credentials. Please configure your LEETCODE_SESSION and csrftoken.',
+        error: 'Missing credentials. Please configure your LEETCODE_SESSION.',
         needCredentials: true,
       });
+    }
+
+    // Auto-fetch CSRF token if missing
+    if (!csrfToken) {
+      csrfToken = await fetchFreshCsrfToken();
     }
 
     // Determine question to submit
@@ -311,7 +329,7 @@ app.post('/api/settings', (req, res) => {
   res.json({
     ok: true,
     username: updated.username,
-    hasCredentials: Boolean(updated.sessionCookie && updated.csrfToken),
+    hasCredentials: Boolean(updated.sessionCookie),
   });
 });
 

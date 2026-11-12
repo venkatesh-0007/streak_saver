@@ -144,12 +144,23 @@ export async function fetchFreshCsrfToken() {
         'User-Agent': DEFAULT_HEADERS['User-Agent'],
       },
     });
+
+    if (typeof res.headers.getSetCookie === 'function') {
+      const cookies = res.headers.getSetCookie();
+      for (const c of cookies) {
+        const m = c.match(/csrftoken=([^;]+)/i);
+        if (m) return m[1];
+      }
+    }
+
     const setCookie = res.headers.get('set-cookie') || '';
-    const match = setCookie.match(/csrftoken=([^;]+)/);
-    return match ? match[1] : '';
+    const match = setCookie.match(/csrftoken=([^;]+)/i);
+    if (match) return match[1];
+
+    return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
   } catch (err) {
     console.error('Failed to auto-fetch CSRF token:', err.message);
-    return '';
+    return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
   }
 }
 
@@ -283,7 +294,7 @@ export async function submitSolution({
       method: 'GET',
       headers: {
         'x-requested-with': 'XMLHttpRequest',
-        'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${csrfToken};`,
+        'Cookie': `LEETCODE_SESSION=${sessionCookie}; csrftoken=${activeCsrf};`,
         'User-Agent': headers['User-Agent'],
       },
     });
